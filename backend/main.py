@@ -2,6 +2,7 @@
 Emotion Detection API - PW2 Group C7
 FastAPI backend serving CNN and Transfer Learning (MobileNetV2) models
 """
+# Vercel redeploy trigger
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
