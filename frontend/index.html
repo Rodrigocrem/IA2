@@ -176,7 +176,7 @@ main{max-width:1440px;margin:0 auto;padding:28px 40px;display:grid;gap:22px}
 </main>
 <div id="toast"></div>
 <script>
-const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:8000':'';
+const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:8000':'https://ia2-23xy.onrender.com';
 let activeModel='cnn',selectedFile=null,charts={};
 const EC={happy:'#e8ff47',angry:'#ff4757',fear:'#c47bff',sad:'#47c8ff',surprise:'#ff9f43'};
 Chart.defaults.color='#6b7080';
@@ -367,6 +367,11 @@ async function loadAll(){
   await loadComparison();
   await loadAll();
 })();
+
+// Keepalive ping para evitar que Render duerma
+setInterval(async function() {
+  try { await fetch(API + '/api/health'); } catch(e) {}
+}, 4 * 60 * 1000); // cada 4 minutos
 </script>
 </body>
 </html>
