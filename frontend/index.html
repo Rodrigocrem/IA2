@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EmotiScan - Face Emotion AI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0b0f;--surface:#12141a;--s2:#1a1d26;--border:#252836;
+  --accent:#e8ff47;--a2:#ff6b6b;--a3:#47c8ff;--a4:#c47bff;
+  --text:#f0f2ff;--muted:#6b7080;
+  --happy:#e8ff47;--angry:#ff4757;--fear:#c47bff;--sad:#47c8ff;--surprise:#ff9f43;
+  --font:'Syne',sans-serif;--mono:'DM Mono',monospace;--r:16px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+header{padding:18px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:rgba(10,11,15,.9);backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:12px}
+.lm{width:34px;height:34px;background:var(--accent);border-radius:8px;display:grid;place-items:center;font-size:16px;font-weight:800;color:#0a0b0f}
+.lt{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+.lt span{color:var(--accent)}
+.hr{display:flex;align-items:center;gap:14px}
+.sp{display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--s2);border:1px solid var(--border);border-radius:100px;font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.sd{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 6px rgba(74,222,128,0)}}
+.mt{display:flex;background:var(--s2);border:1px solid var(--border);border-radius:100px;padding:3px}
+.mb{padding:5px 16px;border-radius:100px;border:none;cursor:pointer;font-family:var(--font);font-size:.78rem;font-weight:600;color:var(--muted);background:transparent;transition:all .2s}
+.mb.active{background:var(--accent);color:#0a0b0f}
+main{max-width:1440px;margin:0 auto;padding:28px 40px;display:grid;gap:22px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:22px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;transition:border-color .25s,box-shadow .25s;animation:fi .4s ease both}
+.card:hover{border-color:rgba(232,255,71,.2);box-shadow:0 0 40px rgba(232,255,71,.1)}
+.ct{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);display:inline-block}
+.sv{font-size:2.2rem;font-weight:800;line-height:1;letter-spacing:-.04em}
+.sl{font-size:.73rem;color:var(--muted);margin-top:5px;font-family:var(--mono)}
+.sd2{display:inline-flex;align-items:center;font-family:var(--mono);font-size:.68rem;padding:2px 8px;border-radius:5px;margin-top:8px;background:rgba(74,222,128,.1);color:#4ade80}
+.al{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.uz{border:2px dashed var(--border);border-radius:10px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--s2)}
+.uz:hover,.uz.drag{border-color:var(--accent);background:rgba(232,255,71,.04)}
+.uz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ui{font-size:2.8rem;margin-bottom:10px;display:block}
+.ut{font-size:.95rem;font-weight:700;margin-bottom:5px}
+.us{font-size:.77rem;color:var(--muted);font-family:var(--mono)}
+#pw{display:none;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--s2)}
+#pw img{width:100%;height:100%;object-fit:cover;display:block}
+.pb{width:100%;margin-top:14px;padding:13px;border:none;cursor:pointer;background:var(--accent);color:#0a0b0f;font-family:var(--font);font-size:.88rem;font-weight:800;border-radius:9px;letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
+.pb:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(232,255,71,.3)}
+.pb:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.bload{display:none;width:15px;height:15px;border:2px solid #0a0b0f;border-top-color:transparent;border-radius:50%;animation:sp2 .6s linear infinite;margin:0 auto}
+@keyframes sp2{to{transform:rotate(360deg)}}
+.te{text-align:center;padding:18px;border-radius:10px;margin-bottom:14px;background:var(--s2);border:1px solid var(--border)}
+.tel{font-size:2.3rem;font-weight:800;letter-spacing:-.04em}
+.tec{font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-top:4px}
+.ebr{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.ebl{width:68px;font-size:.73rem;font-weight:600;text-transform:capitalize;text-align:right}
+.ebt{flex:1;height:7px;background:var(--s2);border-radius:100px;overflow:hidden}
+.ebf{height:100%;border-radius:100px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.ebp{width:40px;font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:right}
+.cw{position:relative;width:100%;min-height:240px}
+#cmt{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.7rem}
+#cmt th{padding:5px 7px;color:var(--muted);font-weight:500;text-align:center}
+#cmt td{padding:5px 7px;text-align:center;border-radius:3px;font-weight:700}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px}
+.pi{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 13px}
+.pk{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin-bottom:3px}
+.pv{font-size:.83rem;font-weight:700}
+.ct2{width:100%;border-collapse:collapse}
+.ct2 th,.ct2 td{padding:9px 13px;border-bottom:1px solid var(--border);font-size:.8rem}
+.ct2 th{color:var(--muted);font-weight:600;text-align:left}
+.ct2 td:not(:first-child){font-family:var(--mono);text-align:right}
+.bt{color:var(--accent);font-weight:700}
+.mbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,159,67,.1);border:1px solid rgba(255,159,67,.3);border-radius:5px;font-family:var(--mono);font-size:.66rem;color:#ff9f43}
+#toast{position:fixed;bottom:28px;right:28px;padding:10px 18px;background:var(--s2);border:1px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:.78rem;z-index:9999;transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.16s}
+@media(max-width:900px){.g2{grid-template-columns:1fr}header{padding:12px 16px}main{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="lm">E</div>
+    <div class="lt">Emoti<span>Scan</span></div>
+  </div>
+  <div class="hr">
+    <div class="sp"><span class="sd"></span><span id="api-status">Conectando...</span></div>
+    <div class="mt">
+      <button class="mb active" onclick="setModel('cnn')" id="btn-cnn">CNN</button>
+      <button class="mb" onclick="setModel('transfer')" id="btn-tl">MobileNetV2</button>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="ga">
+    <div class="card"><div class="al"></div>
+      <div class="ct"><span class="dot"></span>Accuracy CNN</div>
+      <div class="sv" id="s1">58.0%</div><div class="sl">Mejor val accuracy</div>
+      <div class="sd2" id="s1e">20 epocas</div></div>
+    <div class="card"><div class="al" style="background:linear-gradient(90deg,var(--a3),transparent)"></div>
+      <div class="ct"><span class="dot" style="background:var(--a3)"></span>Accuracy MobileNetV2</div>
+      <div class="sv" style="color:var(--a3)" id="s2">77.0%</div><div class="sl">Transfer Learning</div>
+      <div class="sd2" id="s2e">20 epocas</div></div>
+    <div class="card"><div class="al" style="background:linear-gradient(90deg,var(--a4),transparent)"></div>
+      <div class="ct"><span class="dot" style="background:var(--a4)"></span>Clases</div>
+      <div class="sv" style="color:var(--a4)">5</div>
+      <div class="sl">angry fear happy sad surprise</div>
+      <div class="sd2">Softmax multiclase</div></div>
+    <div class="card"><div class="al" style="background:linear-gradient(90deg,var(--a2),transparent)"></div>
+      <div class="ct"><span class="dot" style="background:var(--a2)"></span>Dataset</div>
+      <div class="sv" style="color:var(--a2)" id="s3">7.834</div>
+      <div class="sl">Imagenes Kaggle</div>
+      <div class="sd2">70 / 15 / 15 split</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct"><span class="dot"></span>Prediccion en vivo - <span id="aml" style="color:var(--accent)">CNN</span></div>
+      <div id="ua">
+        <div class="uz" id="dz">
+          <input type="file" id="fi" accept="image/*"/>
+          <span class="ui">face</span>
+          <div class="ut">Arrastra una imagen o haz click</div>
+          <div class="us">PNG / JPG - cara con expresion facial</div>
+        </div>
+      </div>
+      <div id="pw"><img id="pi" alt="preview"/></div>
+      <button class="pb" id="pb" onclick="runPredict()" disabled>
+        <span class="btext">ANALIZAR EMOCION</span>
+        <span class="bload" id="bload"></span>
+      </button>
+      <div id="er" style="display:none;margin-top:18px">
+        <div class="te" id="teb">
+          <div class="tel" id="tel">-</div>
+          <div class="tec" id="tec">-</div>
+        </div>
+        <div id="eb"></div>
+        <div id="mn" style="display:none;margin-top:8px">
+          <span class="mbadge">DEMO - sube modelo .keras para prediccion real</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><span class="dot"></span>Curvas de entrenamiento - <span id="cml" style="color:var(--accent)">CNN</span></div>
+      <div class="cw" style="height:320px"><canvas id="ch"></canvas></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct"><span class="dot" style="background:var(--a3)"></span>Matriz de confusion</div>
+      <div style="overflow-x:auto"><table id="cmt"><tbody id="cmb"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="ct"><span class="dot" style="background:var(--a4)"></span>Metricas por clase</div>
+      <div class="cw" style="height:260px"><canvas id="cm"></canvas></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct"><span class="dot" style="background:var(--a2)"></span>Distribucion del dataset</div>
+      <div class="cw" style="height:240px"><canvas id="cdist"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct"><span class="dot"></span>CNN vs Transfer Learning</div>
+      <table class="ct2"><thead><tr><th>Metrica</th><th>CNN</th><th>MobileNetV2</th></tr></thead>
+      <tbody id="ctb"></tbody></table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><span class="dot"></span>Mejores hiperparametros - <span id="pml" style="color:var(--accent)">CNN</span></div>
+    <div id="pg" class="pg"></div>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:8000':'';
+let activeModel='cnn',selectedFile=null,charts={};
+const EC={happy:'#e8ff47',angry:'#ff4757',fear:'#c47bff',sad:'#47c8ff',surprise:'#ff9f43'};
+Chart.defaults.color='#6b7080';
+Chart.defaults.borderColor='#252836';
+Chart.defaults.font.family="'DM Mono',monospace";
+function cdo(){
+  return{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{boxWidth:9,padding:12,font:{size:10}}}},
+    scales:{x:{grid:{color:'#1a1d26'},ticks:{font:{size:10}}},y:{grid:{color:'#1a1d26'},ticks:{font:{size:10}}}}};
+}
+async function checkHealth(){
+  try{
+    const d=await(await fetch(API+'/api/health')).json();
+    document.getElementById('api-status').textContent='OK '+d.cnn_model+'/'+d.transfer_model;
+  }catch{
+    document.getElementById('api-status').textContent='API offline';
+    document.querySelector('.sd').style.background='#ff4757';
+  }
+}
+function setModel(m){
+  activeModel=m;
+  document.getElementById('btn-cnn').classList.toggle('active',m==='cnn');
+  document.getElementById('btn-tl').classList.toggle('active',m==='transfer');
+  const l=m==='cnn'?'CNN':'MobileNetV2';
+  ['aml','cml','pml'].forEach(function(id){document.getElementById(id).textContent=l;});
+  loadAll();
+}
+var fi2=document.getElementById('fi'),dz=document.getElementById('dz');
+fi2.addEventListener('change',function(e){hf(e.target.files[0]);});
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');hf(e.dataTransfer.files[0]);});
+function hf(file){
+  if(!file)return;
+  selectedFile=file;
+  document.getElementById('pi').src=URL.createObjectURL(file);
+  document.getElementById('ua').style.display='none';
+  document.getElementById('pw').style.display='block';
+  document.getElementById('pb').disabled=false;
+  document.getElementById('er').style.display='none';
+}
+async function runPredict(){
+  if(!selectedFile)return;
+  var btn=document.getElementById('pb');
+  btn.disabled=true;
+  document.querySelector('.btext').style.display='none';
+  document.getElementById('bload').style.display='block';
+  try{
+    var fd=new FormData();
+    fd.append('file',selectedFile);
+    var d=await(await fetch(API+'/api/predict?model_type='+activeModel,{method:'POST',body:fd})).json();
+    renderP(d);
+  }catch(err){toast('No se pudo conectar con la API','e');}
+  finally{
+    btn.disabled=false;
+    document.querySelector('.btext').style.display='inline';
+    document.getElementById('bload').style.display='none';
+  }
+}
+function renderP(data){
+  document.getElementById('er').style.display='block';
+  var top=data.predictions[0];
+  var color=EC[top.emotion]||'#e8ff47';
+  var box=document.getElementById('teb');
+  box.style.borderColor=color;
+  box.style.background=color+'12';
+  var lbl=document.getElementById('tel');
+  lbl.textContent=top.emotion.toUpperCase();
+  lbl.style.color=color;
+  document.getElementById('tec').textContent='Confianza: '+(top.probability*100).toFixed(1)+'%  -  '+(activeModel==='cnn'?'CNN':'MobileNetV2');
+  var eb=document.getElementById('eb');
+  eb.innerHTML='';
+  data.predictions.forEach(function(p){
+    var c=EC[p.emotion]||'#888';
+    var pct=(p.probability*100).toFixed(1);
+    eb.innerHTML+='<div class="ebr"><div class="ebl">'+p.emotion+'</div><div class="ebt"><div class="ebf" style="width:0%;background:'+c+'" data-t="'+pct+'"></div></div><div class="ebp">'+pct+'%</div></div>';
+  });
+  setTimeout(function(){
+    document.querySelectorAll('.ebf').forEach(function(el){el.style.width=el.dataset.t+'%';});
+  },50);
+  document.getElementById('mn').style.display=data.mock_mode?'block':'none';
+}
+async function loadHistory(){
+  var d=await(await fetch(API+'/api/metrics/history?model_type='+activeModel)).json();
+  if(charts.h)charts.h.destroy();
+  charts.h=new Chart(document.getElementById('ch').getContext('2d'),{
+    type:'line',
+    data:{labels:d.epochs,datasets:[
+      {label:'Train Acc',data:d.accuracy,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.06)',tension:.3,pointRadius:2},
+      {label:'Val Acc',data:d.val_accuracy,borderColor:'#47c8ff',backgroundColor:'rgba(71,200,255,.06)',tension:.3,pointRadius:2},
+      {label:'Train Loss',data:d.loss,borderColor:'#c47bff',backgroundColor:'transparent',tension:.3,pointRadius:2,borderDash:[4,4]},
+      {label:'Val Loss',data:d.val_loss,borderColor:'#ff6b6b',backgroundColor:'transparent',tension:.3,pointRadius:2,borderDash:[4,4]},
+    ]},
+    options:Object.assign({},cdo(),{scales:{x:{grid:{color:'#1a1d26'}},y:{grid:{color:'#1a1d26'},min:0,max:1.8}}}),
+  });
+}
+async function loadConfusion(){
+  var d=await(await fetch(API+'/api/metrics/confusion?model_type='+activeModel)).json();
+  var mx=Math.max.apply(null,d.matrix.reduce(function(a,b){return a.concat(b)},[]));
+  var html='<tr><th></th>'+d.classes.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';
+  d.matrix.forEach(function(row,i){
+    html+='<tr><th style="color:var(--accent);text-align:right;padding-right:6px">'+d.classes[i]+'</th>';
+    row.forEach(function(v,j){
+      var r=v/mx;
+      var bg=i===j?'rgba(232,255,71,'+r.toFixed(2)+')':'rgba(255,71,87,'+(r*.6).toFixed(2)+')';
+      var tc=r>.6&&i===j?'#0a0b0f':'var(--text)';
+      html+='<td style="background:'+bg+';color:'+tc+'">'+v+'</td>';
+    });
+    html+='</tr>';
+  });
+  document.getElementById('cmb').innerHTML=html;
+}
+async function loadPerClass(){
+  var d=await(await fetch(API+'/api/metrics/per-class?model_type='+activeModel)).json();
+  if(charts.m)charts.m.destroy();
+  charts.m=new Chart(document.getElementById('cm').getContext('2d'),{
+    type:'bar',
+    data:{labels:d.classes,datasets:[
+      {label:'Precision',data:d.precision,backgroundColor:'rgba(232,255,71,.7)',borderRadius:4},
+      {label:'Recall',data:d.recall,backgroundColor:'rgba(71,200,255,.7)',borderRadius:4},
+      {label:'F1-score',data:d.f1,backgroundColor:'rgba(196,123,255,.7)',borderRadius:4},
+    ]},
+    options:Object.assign({},cdo(),{scales:{x:{grid:{color:'#1a1d26'}},y:{grid:{color:'#1a1d26'},min:0,max:1}}}),
+  });
+}
+async function loadDataset(){
+  var d=await(await fetch(API+'/api/metrics/dataset')).json();
+  document.getElementById('s3').textContent=d.total.toLocaleString('es');
+  if(charts.ds)charts.ds.destroy();
+  var labels=Object.keys(d.distribution),values=Object.values(d.distribution);
+  charts.ds=new Chart(document.getElementById('cdist').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:labels,datasets:[{data:values,backgroundColor:labels.map(function(l){return EC[l]||'#888';}),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#f0f2ff',boxWidth:10,padding:10,font:{size:10}}}},cutout:'60%'},
+  });
+}
+async function loadComparison(){
+  var d=await(await fetch(API+'/api/metrics/comparison')).json();
+  var cnn=d.cnn,tl=d.transfer;
+  document.getElementById('s1').textContent=(cnn.best_val_accuracy*100).toFixed(1)+'%';
+  document.getElementById('s2').textContent=(tl.best_val_accuracy*100).toFixed(1)+'%';
+  document.getElementById('s1e').textContent=cnn.epochs_trained+' epocas';
+  document.getElementById('s2e').textContent=tl.epochs_trained+' epocas';
+  var rows=[
+    ['Accuracy (val)',cnn.best_val_accuracy,tl.best_val_accuracy,true],
+    ['Loss (val)',cnn.best_val_loss,tl.best_val_loss,false],
+    ['Macro F1',cnn.macro_f1,tl.macro_f1,true],
+    ['Macro Precision',cnn.macro_precision,tl.macro_precision,true],
+    ['Macro Recall',cnn.macro_recall,tl.macro_recall,true],
+  ];
+  document.getElementById('ctb').innerHTML=rows.map(function(r){
+    var name=r[0],cv=r[1],tv=r[2],hb=r[3];
+    var cb=hb?cv>=tv:cv<=tv;
+    return '<tr><td>'+name+'</td><td class="'+(cb?'bt':'')+'">'+cv.toFixed(4)+'</td><td class="'+(!cb?'bt':'')+'">'+tv.toFixed(4)+'</td></tr>';
+  }).join('');
+}
+async function loadConfig(){
+  var d=await(await fetch(API+'/api/config')).json();
+  var best=activeModel==='cnn'?d.cnn_configs[d.cnn_configs.length-1]:d.transfer_configs[d.transfer_configs.length-1];
+  var entries=activeModel==='cnn'?[
+    ['Arquitectura',best.conv_filters.join(' > ')],['Kernel size',best.kernel_size+'x'+best.kernel_size],
+    ['Learning rate',''+best.learning_rate],['Dropout',''+best.dropout],['Dense units',''+best.dense_units],
+    ['Batch size','32'],['Img size','128x128'],['Augmentation','Flip Rot Zoom Translate'],
+  ]:[
+    ['Base model',d.base_model],['Capas densas',''+best.dense_layers],['Dense units',best.dense_units.join(' > ')],
+    ['Learning rate',''+best.learning_rate],['Dropout',''+best.dropout],
+    ['Batch size','32'],['Img size','128x128'],['Fine-tuning','Frozen base'],
+  ];
+  document.getElementById('pg').innerHTML=entries.map(function(e2){
+    return '<div class="pi"><div class="pk">'+e2[0]+'</div><div class="pv">'+e2[1]+'</div></div>';
+  }).join('');
+}
+function toast(msg,type){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderColor=type==='e'?'#ff4757':'#e8ff47';
+  el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show');},3500);
+}
+async function loadAll(){
+  try{
+    await Promise.all([loadHistory(),loadConfusion(),loadPerClass(),loadConfig()]);
+  }catch(err){toast('Error cargando metricas');}
+}
+(async function(){
+  await checkHealth();
+  await loadDataset();
+  await loadComparison();
+  await loadAll();
+})();
+</script>
+</body>
+</html>
