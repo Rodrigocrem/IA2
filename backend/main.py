@@ -24,7 +24,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -173,6 +173,7 @@ DATASET_DISTRIBUTION = {
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @app.get("/")
+@app.head("/")
 def root():
     return {"message": "Emotion Detection API - PW2 Group C7", "status": "running"}
 
