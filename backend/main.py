@@ -25,8 +25,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -174,8 +176,13 @@ DATASET_DISTRIBUTION = {
 
 @app.get("/")
 @app.head("/")
+@app.options("/")
 def root():
     return {"message": "Emotion Detection API - PW2 Group C7", "status": "running"}
+
+@app.options("/api/{rest_of_path:path}")
+def options_handler(rest_of_path: str):
+    return {"ok": True}
 
 
 @app.get("/api/health")
