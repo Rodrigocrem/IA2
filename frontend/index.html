@@ -139,7 +139,7 @@ main{max-width:1440px;margin:0 auto;padding:28px 40px;display:grid;gap:22px}
         </div>
         <div id="eb"></div>
         <div id="mn" style="display:none;margin-top:8px">
-          <span class="mbadge"></span>
+          <span class="mbadge">DEMO - sube modelo .keras para prediccion real</span>
         </div>
       </div>
     </div>
@@ -176,7 +176,7 @@ main{max-width:1440px;margin:0 auto;padding:28px 40px;display:grid;gap:22px}
 </main>
 <div id="toast"></div>
 <script>
-const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:8000':'https://ia2-23xy.onrender.com';
+const API=(location.hostname==='localhost'||location.hostname==='127.0.0.1')?'http://localhost:8000':'https://rodrigocrem-emotion-api.hf.space';
 let activeModel='cnn',selectedFile=null,charts={};
 const EC={happy:'#e8ff47',angry:'#ff4757',fear:'#c47bff',sad:'#47c8ff',surprise:'#ff9f43'};
 Chart.defaults.color='#6b7080';
